@@ -1,8 +1,17 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "SUTUT";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div style="text-align:center; padding: 80px 20px;">
+    <h1>Susatv za upravljanje treninzima i utrkama trkača</h1>
+    <p>Odaberite što želite pregledati:</p>
+
+    <div style="margin-top: 40px; display: flex; gap: 20px; justify-content: center;">
+        <a asp-controller="Utrkas" asp-action="Index" class="btn btn-primary btn-lg">
+            🏃 Utrke
+        </a>
+        <a asp-controller="Kategorijas" asp-action="Index" class="btn btn-secondary btn-lg">
+            📋 Kategorije
+        </a>
+    </div>
 </div>

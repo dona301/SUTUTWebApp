@@ -1,0 +1,65 @@
+﻿@model IEnumerable<SUTUTWebApp.Models.Entities.Utrka>
+
+@{
+    ViewData["Title"] = "View Utrka";
+}
+
+<h1>View Utrka</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Naziv)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Datum)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Grad)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Drzava)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Organizator)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Naziv)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Datum)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Grad)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Drzava)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Organizator.OrganizatorId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status.StatusId)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.UtrkaId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.UtrkaId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.UtrkaId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
