@@ -1,0 +1,71 @@
+﻿@model IEnumerable<SUTUTWebApp.Models.Entities.Organizator>
+
+@{
+    ViewData["Title"] = "Organizator";
+}
+
+<h1>Organizator</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Ime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BrojMobitela)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Oib)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WebStranica)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Opis)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VrstaOrganizatora)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Ime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BrojMobitela)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Oib)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.WebStranica)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Opis)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VrstaOrganizatora.VrstaOrganizatoraId)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.OrganizatorId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.OrganizatorId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.OrganizatorId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

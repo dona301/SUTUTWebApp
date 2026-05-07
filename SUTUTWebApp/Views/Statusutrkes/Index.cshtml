@@ -1,0 +1,82 @@
+﻿@model IEnumerable<SUTUTWebApp.Models.Entities.Statusutrke>
+
+@{
+    ViewData["Title"] = "Status utrke";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Status utrke</h2>
+
+        <a asp-action="Create" class="btn btn-success">
+            Dodaj novi
+        </a>
+    </div>
+    <form asp-action="Index" method="get" class="mb-3">
+        <div class="input-group" style="max-width: 400px;">
+            <input type="text"
+                   name="searchString"
+                   value="@ViewData["CurrentFilter"]"
+                   class="form-control"
+                   placeholder="Pretraži po nazivu..." />
+            <button type="submit" class="btn btn-outline-secondary">Pretraži</button>
+            @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
+            {
+                <a asp-action="Index" class="btn btn-outline-danger">Očisti</a>
+            }
+        </div>
+    </form>
+    <table class="table align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.StatusId)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Naziv)
+                </th>
+                <th class="text-end">
+                    Akcije
+                </th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @item.StatusId
+                    </td>
+
+                    <td>
+                        @item.Naziv
+                    </td>
+
+                    <td class="text-end">
+                        <a asp-action="Edit"
+                           asp-route-id="@item.StatusId"
+                           class="btn btn-sm btn-primary">
+                            Uredi
+                        </a>
+
+                        <a asp-action="Details"
+                           asp-route-id="@item.StatusId"
+                           class="btn btn-sm btn-info">
+                            Detalji
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@item.StatusId"
+                           class="btn btn-sm btn-danger">
+                            Izbriši
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+
+</div>
