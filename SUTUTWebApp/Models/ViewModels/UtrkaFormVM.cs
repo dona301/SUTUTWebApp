@@ -3,7 +3,7 @@ namespace SUTUTWebApp.Models.ViewModels;
 
 public class UtrkaFormVM
 {
-    public int UtrkaId { get; set; } // 0 on Create, >0 on Edit
+    public int UtrkaId { get; set; }
 
     public string Naziv { get; set; } = "";
     public DateOnly Datum { get; set; }
@@ -13,11 +13,9 @@ public class UtrkaFormVM
     public int OrganizatorId { get; set; }
     public int StatusId { get; set; }
 
-    // Dropdown option lists — populated by controller, never posted back
     public List<SelectListItem> Organizatori { get; set; } = new();
     public List<SelectListItem> Statusi { get; set; } = new();
     public List<SelectListItem> TipoviKategorije { get; set; } = new();
 
-    // The detail rows
     public List<KategorijaRowVM> Kategorije { get; set; } = new();
 }

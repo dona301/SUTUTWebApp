@@ -46,7 +46,6 @@
 
     <hr />
 
-    <!-- ===== DETAIL ===== -->
     <h4>Kategorije</h4>
     <table class="table table-bordered" id="kategorijeTable">
         <thead class="table-light">
@@ -91,7 +90,7 @@
                             }
                         </select>
                     </td>
-                    <td><button type="button" class="btn btn-danger btn-sm" onclick="ukloniRedak(this)">🗑</button></td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="ukloniRedak(this)">Izbirši</button></td>
                 </tr>
             }
         </tbody>
@@ -104,7 +103,6 @@
     <a asp-action="Index" class="btn btn-secondary">Odustani</a>
 </form>
 
-<!-- Template for new rows (JS only) -->
 <template id="rowTemplate">
     <tr class="detail-row">
         <input type="hidden" name="Kategorije[__i__].KategorijaId" value="0" />
@@ -136,17 +134,13 @@
         document.getElementById('kategorijeBody').insertAdjacentHTML('beforeend', html);
     }
 
-    // For existing rows: hide visually, mark IsDeleted=true (so controller deletes from DB)
-    // For new rows (KategorijaId=0): just remove the DOM element entirely
     function ukloniRedak(btn) {
         const row = btn.closest('tr');
         const idInput = row.querySelector('input[name*="KategorijaId"]');
         if (idInput && idInput.value !== '0') {
-            // Existing DB row — hide and mark deleted
             row.style.display = 'none';
             row.querySelector('.isDeletedField').value = 'true';
         } else {
-            // New row — just remove from DOM
             row.remove();
         }
     }

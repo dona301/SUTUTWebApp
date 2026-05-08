@@ -23,6 +23,7 @@ public class UtrkasController : Controller
             .Include(u => u.Organizator)
             .Include(u => u.Status)
             .Include(u => u.Kategorijas)
+            .AsNoTracking()
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(searchString))
