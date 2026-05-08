@@ -9,7 +9,16 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<MasterContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
 var app = builder.Build();
+var supportedCultures = new[] { System.Globalization.CultureInfo.InvariantCulture };
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(
+        System.Globalization.CultureInfo.InvariantCulture),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

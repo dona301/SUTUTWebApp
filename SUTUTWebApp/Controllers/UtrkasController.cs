@@ -1,169 +1,257 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SUTUTWebApp.Models.Entities;
+using SUTUTWebApp.Models.ViewModels;
 
-namespace SUTUTWebApp.Controllers
+namespace SUTUTWebApp.Controllers;
+
+public class UtrkasController : Controller
 {
-    public class UtrkasController : Controller
+    private readonly MasterContext _context;
+
+    public UtrkasController(MasterContext context)
     {
-        private readonly MasterContext _context;
+        _context = context;
+    }
 
-        public UtrkasController(MasterContext context)
+    public async Task<IActionResult> Index(string searchString)
+    {
+        ViewData["CurrentFilter"] = searchString;
+
+        var utrke = _context.Utrkas
+            .Include(u => u.Organizator)
+            .Include(u => u.Status)
+            .Include(u => u.Kategorijas)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchString))
         {
-            _context = context;
+            utrke = utrke.Where(u =>
+                u.Naziv.Contains(searchString) ||
+                u.Grad.Contains(searchString) ||
+                u.Drzava.Contains(searchString) ||
+                u.Organizator.Ime.Contains(searchString));
         }
 
-        // GET: Utrkas
-        public async Task<IActionResult> Index()
+        return View(await utrke.ToListAsync());
+    }
+
+    public async Task<IActionResult> Create()
+    {
+        var vm = new UtrkaFormVM();
+        await PopulateDropdowns(vm);
+        return View("Form", vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(UtrkaFormVM vm)
+    {
+        ValidateBusiness(vm);
+
+        if (!ModelState.IsValid)
         {
-            var masterContext = _context.Utrkas.Include(u => u.Organizator).Include(u => u.Status);
-            return View(await masterContext.ToListAsync());
+            await PopulateDropdowns(vm);
+            return View("Form", vm);
         }
 
-        // GET: Utrkas/Details/5
-        public async Task<IActionResult> Details(int? id)
+        var utrka = new Utrka
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            Naziv = vm.Naziv,
+            Datum = vm.Datum,
+            Grad = vm.Grad,
+            Drzava = vm.Drzava,
+            OrganizatorId = vm.OrganizatorId,
+            StatusId = vm.StatusId
+        };
+        _context.Utrkas.Add(utrka);
+        await _context.SaveChangesAsync();
 
-            var utrka = await _context.Utrkas
-                .Include(u => u.Organizator)
-                .Include(u => u.Status)
-                .FirstOrDefaultAsync(m => m.UtrkaId == id);
-            if (utrka == null)
+        foreach (var row in vm.Kategorije.Where(k => !k.IsDeleted))
+        {
+            _context.Kategorijas.Add(new Kategorija
             {
-                return NotFound();
-            }
+                Naziv = row.Naziv,
+                Duljina = row.Duljina,
+                MaxBrojTrkaca = row.MaxBrojTrkaca,
+                Startnina = row.Startnina,
+                Početak = row.Pocetak,
+                UtrkaId = utrka.UtrkaId,
+                TipId = row.TipId
+            });
+        }
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
 
-            return View(utrka);
+    public async Task<IActionResult> Edit(int id)
+    {
+        var utrka = await _context.Utrkas
+            .Include(u => u.Kategorijas)
+            .FirstOrDefaultAsync(u => u.UtrkaId == id);
+
+        if (utrka == null) return NotFound();
+
+        var vm = new UtrkaFormVM
+        {
+            UtrkaId = utrka.UtrkaId,
+            Naziv = utrka.Naziv,
+            Datum = utrka.Datum,
+            Grad = utrka.Grad,
+            Drzava = utrka.Drzava,
+            OrganizatorId = utrka.OrganizatorId,
+            StatusId = utrka.StatusId,
+            Kategorije = utrka.Kategorijas.Select(k => new KategorijaRowVM
+            {
+                KategorijaId = k.KategorijaId,
+                Naziv = k.Naziv,
+                Duljina = k.Duljina,
+                MaxBrojTrkaca = k.MaxBrojTrkaca,
+                Startnina = k.Startnina,
+                Pocetak = k.Početak,
+                TipId = k.TipId
+            }).ToList()
+        };
+
+        await PopulateDropdowns(vm);
+        return View("Form", vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(UtrkaFormVM vm)
+    {
+        ValidateBusiness(vm);
+
+        if (!ModelState.IsValid)
+        {
+            await PopulateDropdowns(vm);
+            return View("Form", vm);
         }
 
-        // GET: Utrkas/Create
-        public IActionResult Create()
+        var utrka = await _context.Utrkas
+            .Include(u => u.Kategorijas)
+            .FirstOrDefaultAsync(u => u.UtrkaId == vm.UtrkaId);
+
+        if (utrka == null) return NotFound();
+
+        utrka.Naziv = vm.Naziv;
+        utrka.Datum = vm.Datum;
+        utrka.Grad = vm.Grad;
+        utrka.Drzava = vm.Drzava;
+        utrka.OrganizatorId = vm.OrganizatorId;
+        utrka.StatusId = vm.StatusId;
+
+        foreach (var row in vm.Kategorije)
         {
-            ViewData["OrganizatorId"] = new SelectList(_context.Organizators, "OrganizatorId", "OrganizatorId");
-            ViewData["StatusId"] = new SelectList(_context.Statusutrkes, "StatusId", "StatusId");
-            return View();
-        }
-
-        // POST: Utrkas/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UtrkaId,Naziv,Datum,Grad,Drzava,OrganizatorId,StatusId")] Utrka utrka)
-        {
-            if (ModelState.IsValid)
+            if (row.KategorijaId == 0)
             {
-                _context.Add(utrka);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["OrganizatorId"] = new SelectList(_context.Organizators, "OrganizatorId", "OrganizatorId", utrka.OrganizatorId);
-            ViewData["StatusId"] = new SelectList(_context.Statusutrkes, "StatusId", "StatusId", utrka.StatusId);
-            return View(utrka);
-        }
-
-        // GET: Utrkas/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var utrka = await _context.Utrkas.FindAsync(id);
-            if (utrka == null)
-            {
-                return NotFound();
-            }
-            ViewData["OrganizatorId"] = new SelectList(_context.Organizators, "OrganizatorId", "OrganizatorId", utrka.OrganizatorId);
-            ViewData["StatusId"] = new SelectList(_context.Statusutrkes, "StatusId", "StatusId", utrka.StatusId);
-            return View(utrka);
-        }
-
-        // POST: Utrkas/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UtrkaId,Naziv,Datum,Grad,Drzava,OrganizatorId,StatusId")] Utrka utrka)
-        {
-            if (id != utrka.UtrkaId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+                if (!row.IsDeleted)
                 {
-                    _context.Update(utrka);
-                    await _context.SaveChangesAsync();
+                    _context.Kategorijas.Add(new Kategorija
+                    {
+                        Naziv = row.Naziv,
+                        Duljina = row.Duljina,
+                        MaxBrojTrkaca = row.MaxBrojTrkaca,
+                        Startnina = row.Startnina,
+                        Početak = row.Pocetak,
+                        UtrkaId = utrka.UtrkaId,
+                        TipId = row.TipId
+                    });
                 }
-                catch (DbUpdateConcurrencyException)
+            }
+            else
+            {
+                var existing = utrka.Kategorijas.First(k => k.KategorijaId == row.KategorijaId);
+                if (row.IsDeleted)
                 {
-                    if (!UtrkaExists(utrka.UtrkaId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    _context.Kategorijas.Remove(existing);
                 }
-                return RedirectToAction(nameof(Index));
+                else
+                {
+                    existing.Naziv = row.Naziv;
+                    existing.Duljina = row.Duljina;
+                    existing.MaxBrojTrkaca = row.MaxBrojTrkaca;
+                    existing.Startnina = row.Startnina;
+                    existing.Početak = row.Pocetak;
+                    existing.TipId = row.TipId;
+                }
             }
-            ViewData["OrganizatorId"] = new SelectList(_context.Organizators, "OrganizatorId", "OrganizatorId", utrka.OrganizatorId);
-            ViewData["StatusId"] = new SelectList(_context.Statusutrkes, "StatusId", "StatusId", utrka.StatusId);
-            return View(utrka);
         }
 
-        // GET: Utrkas/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Delete(int id)
+    {
+        var utrka = await _context.Utrkas
+            .Include(u => u.Organizator)
+            .Include(u => u.Status)
+            .FirstOrDefaultAsync(u => u.UtrkaId == id);
+        if (utrka == null) return NotFound();
+        return View(utrka);
+    }
+
+    [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var utrka = await _context.Utrkas
+            .Include(u => u.Kategorijas)
+            .FirstOrDefaultAsync(u => u.UtrkaId == id);
+        if (utrka != null)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var utrka = await _context.Utrkas
-                .Include(u => u.Organizator)
-                .Include(u => u.Status)
-                .FirstOrDefaultAsync(m => m.UtrkaId == id);
-            if (utrka == null)
-            {
-                return NotFound();
-            }
-
-            return View(utrka);
-        }
-
-        // POST: Utrkas/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var utrka = await _context.Utrkas.FindAsync(id);
-            if (utrka != null)
-            {
-                _context.Utrkas.Remove(utrka);
-            }
-
+            _context.Kategorijas.RemoveRange(utrka.Kategorijas);
+            _context.Utrkas.Remove(utrka);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    private async Task PopulateDropdowns(UtrkaFormVM vm)
+    {
+        vm.Organizatori = await _context.Organizators
+            .Select(o => new SelectListItem { Value = o.OrganizatorId.ToString(), Text = o.Ime })
+            .ToListAsync();
+
+        vm.Statusi = await _context.Statusutrkes
+            .Select(s => new SelectListItem { Value = s.StatusId.ToString(), Text = s.Naziv })
+            .ToListAsync();
+
+        vm.TipoviKategorije = await _context.Tipkategorijes
+            .Select(t => new SelectListItem { Value = t.TipId.ToString(), Text = t.Naziv })
+            .ToListAsync();
+    }
+
+    public async Task<IActionResult> Details(int id)
+    {
+        var utrka = await _context.Utrkas
+            .Include(u => u.Organizator)
+            .Include(u => u.Status)
+            .Include(u => u.Kategorijas)
+                .ThenInclude(k => k.Tip)
+            .FirstOrDefaultAsync(u => u.UtrkaId == id);
+
+        if (utrka == null) return NotFound();
+
+        return View(utrka);
+    }
+
+    private void ValidateBusiness(UtrkaFormVM vm)
+    {
+        var activeRows = vm.Kategorije.Where(k => !k.IsDeleted).ToList();
+
+        foreach (var k in activeRows)
+        {
+            if (k.Pocetak < vm.Datum)
+                ModelState.AddModelError("",
+                    $"Kategorija '{k.Naziv}': datum početka ({k.Pocetak}) ne može biti prije datuma utrke ({vm.Datum}).");
         }
 
-        private bool UtrkaExists(int id)
-        {
-            return _context.Utrkas.Any(e => e.UtrkaId == id);
-        }
+        var dupes = activeRows
+            .GroupBy(k => new { k.Duljina, k.TipId })
+            .Where(g => g.Count() > 1);
+        foreach (var d in dupes)
+            ModelState.AddModelError("",
+                $"Postoje dvije kategorije iste duljine ({d.Key.Duljina} km) i istog tipa.");
     }
 }

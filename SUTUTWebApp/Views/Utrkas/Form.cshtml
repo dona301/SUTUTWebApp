@@ -1,0 +1,154 @@
+﻿@model SUTUTWebApp.Models.ViewModels.UtrkaFormVM
+@{
+    ViewData["Title"] = Model.UtrkaId == 0 ? "Nova utrka" : "Uredi utrku";
+    var isEdit = Model.UtrkaId > 0;
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="UtrkaId" />
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <h4>Utrka</h4>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label asp-for="Naziv" class="form-label"></label>
+            <input asp-for="Naziv" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label asp-for="Datum" class="form-label"></label>
+            <input asp-for="Datum" type="date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="Grad" class="form-label"></label>
+            <input asp-for="Grad" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="Drzava" class="form-label"></label>
+            <input asp-for="Drzava" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="OrganizatorId" class="form-label">Organizator</label>
+            <select asp-for="OrganizatorId" asp-items="Model.Organizatori" class="form-select">
+                <option value="">-- Odaberi --</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="StatusId" class="form-label">Status</label>
+            <select asp-for="StatusId" asp-items="Model.Statusi" class="form-select">
+                <option value="">-- Odaberi --</option>
+            </select>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- ===== DETAIL ===== -->
+    <h4>Kategorije</h4>
+    <table class="table table-bordered" id="kategorijeTable">
+        <thead class="table-light">
+            <tr>
+                <th>Naziv</th>
+                <th>Duljina (km)</th>
+                <th>Max trkača</th>
+                <th>Startnina (€)</th>
+                <th>Početak</th>
+                <th>Tip</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="kategorijeBody">
+            @for (int i = 0; i < Model.Kategorije.Count; i++)
+            {
+                var currentTipId = Model.Kategorije[i].TipId.ToString();
+                var startnina = Model.Kategorije[i].Startnina.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+                var duljina = Model.Kategorije[i].Duljina.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var pocetak = Model.Kategorije[i].Pocetak.ToString("yyyy-MM-dd");
+
+                <tr class="detail-row">
+                    <input type="hidden" name="Kategorije[@i].KategorijaId" value="@Model.Kategorije[i].KategorijaId" />
+                    <input type="hidden" name="Kategorije[@i].IsDeleted" value="false" class="isDeletedField" />
+                    <td><input name="Kategorije[@i].Naziv" value="@Model.Kategorije[i].Naziv" class="form-control" /></td>
+                    <td><input name="Kategorije[@i].Duljina" value="@duljina" type="number" step="0.01" class="form-control" /></td>
+                    <td><input name="Kategorije[@i].MaxBrojTrkaca" value="@Model.Kategorije[i].MaxBrojTrkaca" type="number" class="form-control" /></td>
+                    <td><input name="Kategorije[@i].Startnina" value="@startnina" type="number" step="0.01" class="form-control" /></td>
+                    <td><input name="Kategorije[@i].Pocetak" value="@pocetak" type="date" class="form-control" /></td>
+                    <td>
+                        <select name="Kategorije[@i].TipId" class="form-select">
+                            @foreach (var tip in Model.TipoviKategorije)
+                            {
+                                if (tip.Value == currentTipId)
+                                {
+                                    <option value="@tip.Value" selected>@tip.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@tip.Value">@tip.Text</option>
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="ukloniRedak(this)">🗑</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-outline-primary mb-3" onclick="dodajRedak()">+ Dodaj kategoriju</button>
+
+    <br />
+    <button type="submit" class="btn btn-success">Spremi</button>
+    <a asp-action="Index" class="btn btn-secondary">Odustani</a>
+</form>
+
+<!-- Template for new rows (JS only) -->
+<template id="rowTemplate">
+    <tr class="detail-row">
+        <input type="hidden" name="Kategorije[__i__].KategorijaId" value="0" />
+        <input type="hidden" name="Kategorije[__i__].IsDeleted" value="false" class="isDeletedField" />
+        <td><input name="Kategorije[__i__].Naziv" class="form-control" /></td>
+        <td><input name="Kategorije[__i__].Duljina" type="number" step="0.01" class="form-control" /></td>
+        <td><input name="Kategorije[__i__].MaxBrojTrkaca" type="number" class="form-control" /></td>
+        <td><input name="Kategorije[__i__].Startnina" type="number" step="0.01" class="form-control" /></td>
+        <td><input name="Kategorije[__i__].Pocetak" type="date" class="form-control" /></td>
+        <td>
+            <select name="Kategorije[__i__].TipId" class="form-select">
+                @foreach (var tip in Model.TipoviKategorije)
+                {
+                    <option value="@tip.Value">@tip.Text</option>
+                }
+            </select>
+        </td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="ukloniRedak(this)">🗑</button></td>
+    </tr>
+</template>
+
+@section Scripts {
+<script>
+    let rowIndex = @Model.Kategorije.Count;
+
+    function dodajRedak() {
+        const template = document.getElementById('rowTemplate').innerHTML;
+        const html = template.replaceAll('__i__', rowIndex++);
+        document.getElementById('kategorijeBody').insertAdjacentHTML('beforeend', html);
+    }
+
+    // For existing rows: hide visually, mark IsDeleted=true (so controller deletes from DB)
+    // For new rows (KategorijaId=0): just remove the DOM element entirely
+    function ukloniRedak(btn) {
+        const row = btn.closest('tr');
+        const idInput = row.querySelector('input[name*="KategorijaId"]');
+        if (idInput && idInput.value !== '0') {
+            // Existing DB row — hide and mark deleted
+            row.style.display = 'none';
+            row.querySelector('.isDeletedField').value = 'true';
+        } else {
+            // New row — just remove from DOM
+            row.remove();
+        }
+    }
+</script>
+}

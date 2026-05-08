@@ -1,54 +1,72 @@
 ﻿@model SUTUTWebApp.Models.Entities.Utrka
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalji utrke";
 }
 
-<h1>Details</h1>
+<h1>Detalji utrke</h1>
 
 <div>
     <h4>Utrka</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Naziv)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Naziv)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Datum)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Datum)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Grad)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Grad)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Drzava)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Drzava)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Organizator)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Organizator.OrganizatorId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status.StatusId)
-        </dd>
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Naziv)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Naziv)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Datum)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Datum)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Grad)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Grad)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Drzava)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Drzava)</dd>
+
+        <dt class="col-sm-2">Organizator</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Organizator.Ime)</dd>
+
+        <dt class="col-sm-2">Status</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Status.Naziv)</dd>
     </dl>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.UtrkaId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<hr />
+
+<h4>Kategorije</h4>
+
+@if (!Model.Kategorijas.Any())
+{
+    <p class="text-muted">Nema kategorija za ovu utrku.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Naziv</th>
+                <th>Duljina (km)</th>
+                <th>Max trkača</th>
+                <th>Startnina (€)</th>
+                <th>Početak</th>
+                <th>Tip</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var k in Model.Kategorijas)
+            {
+                <tr>
+                    <td>@k.Naziv</td>
+                    <td>@k.Duljina</td>
+                    <td>@k.MaxBrojTrkaca</td>
+                    <td>@k.Startnina.ToString("0.00")</td>
+                    <td>@k.Početak.ToString("dd.MM.yyyy")</td>
+                    <td>@k.Tip.Naziv</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.UtrkaId" class="btn btn-primary">Uredi</a>
+    <a asp-action="Index" class="btn btn-secondary">Natrag na popis</a>
 </div>
