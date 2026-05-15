@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using SUTUTWebApp.Models.Entities;
 using System;
+using SUTUTWebApp.Repositories;
+using SUTUTWebApp.Repositories.Interfaces;
+using SUTUTWebApp.Services;
+using SUTUTWebApp.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +13,14 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<MasterContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Repositories
+builder.Services.AddScoped<IUtrkaRepository, UtrkaRepository>();
+builder.Services.AddScoped<IStatusutrkeRepository, StatusutrkeRepository>();
+
+// Services
+builder.Services.AddScoped<IUtrkaService, UtrkaService>();
+builder.Services.AddScoped<IStatusutrkeService, StatusutrkeService>();
 
 var app = builder.Build();
 var supportedCultures = new[] { System.Globalization.CultureInfo.InvariantCulture };
