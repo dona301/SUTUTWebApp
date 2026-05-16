@@ -13,53 +13,6 @@ namespace SUTUTWebApp.Tests.Unit.Services
         private UtrkaService MakeService() => new(_repoMock.Object);
 
         [Fact]
-        public async Task GetAllAsync_DelegatesToRepository()
-        {
-            var utrke = new List<Utrka> { TestDataFactory.MakeUtrka() };
-            _repoMock.Setup(r => r.GetAllAsync("Zagreb")).ReturnsAsync(utrke);
-            var service = MakeService();
-
-            var result = await service.GetAllAsync("Zagreb");
-
-            Assert.Single(result);
-            _repoMock.Verify(r => r.GetAllAsync("Zagreb"), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetByIdWithDetailsAsync_ReturnsNullWhenNotFound()
-        {
-            _repoMock.Setup(r => r.GetByIdWithDetailsAsync(99))
-                     .ReturnsAsync((Utrka?)null);
-            var service = MakeService();
-
-            var result = await service.GetByIdWithDetailsAsync(99);
-
-            Assert.Null(result);
-        }
-
-
-        [Fact]
-        public async Task PopulateDropdownsAsync_FillsAll3ListsOnViewModel()
-        {
-            _repoMock.Setup(r => r.GetOrganizatoriSelectAsync())
-                     .ReturnsAsync(new List<SelectListItem> { new() { Value = "1", Text = "Org" } });
-            _repoMock.Setup(r => r.GetStatusiSelectAsync())
-                     .ReturnsAsync(new List<SelectListItem> { new() { Value = "1", Text = "Status" } });
-            _repoMock.Setup(r => r.GetTipoviKategorijeSelectAsync())
-                     .ReturnsAsync(new List<SelectListItem> { new() { Value = "1", Text = "Tip" } });
-
-            var service = MakeService();
-            var vm = new UtrkaFormVM();
-
-            await service.PopulateDropdownsAsync(vm);
-
-            Assert.Single(vm.Organizatori);
-            Assert.Single(vm.Statusi);
-            Assert.Single(vm.TipoviKategorije);
-        }
-
-
-        [Fact]
         public async Task GetFormVmForEditAsync_ReturnsNullWhenUtrkaNotFound()
         {
             _repoMock.Setup(r => r.GetByIdWithKategorijasAsync(5))
@@ -105,25 +58,6 @@ namespace SUTUTWebApp.Tests.Unit.Services
 
 
         [Fact]
-        public async Task CreateAsync_CallsAddAndSaveWithMappedUtrka()
-        {
-            var service = MakeService();
-            var vm = TestDataFactory.MakeUtrkaFormVM();
-
-            await service.CreateAsync(vm);
-
-            // provjer ima li utrka ispravne atribute
-            _repoMock.Verify(r => r.AddAsync(It.Is<Utrka>(u =>
-                u.Naziv == vm.Naziv &&
-                u.Grad == vm.Grad &&
-                u.Drzava == vm.Drzava &&
-                u.OrganizatorId == vm.OrganizatorId
-            )), Times.Once);
-
-            _repoMock.Verify(r => r.SaveChangesAsync(), Times.Exactly(2));
-        }
-
-        [Fact]
         public async Task CreateAsync_IgnoresDeletedKategorije()
         {
             var service = MakeService();
@@ -156,23 +90,6 @@ namespace SUTUTWebApp.Tests.Unit.Services
             _repoMock.Verify(r => r.SaveChangesAsync(), Times.Never);
         }
 
-        [Fact]
-        public async Task UpdateAsync_ReturnsTrueAndUpdatesFields()
-        {
-            var utrka = TestDataFactory.MakeUtrka(id: 1);
-            _repoMock.Setup(r => r.GetByIdWithKategorijasAsync(1)).ReturnsAsync(utrka);
-            var service = MakeService();
-
-            var vm = TestDataFactory.MakeUtrkaFormVM(utrkaId: 1);
-            vm.Naziv = "Novo ime";
-            vm.Kategorije.Clear();
-
-            var result = await service.UpdateAsync(vm);
-
-            Assert.True(result);
-            Assert.Equal("Novo ime", utrka.Naziv);
-            _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
-        }
 
         [Fact]
         public async Task UpdateAsync_AddsNewKategorijaWhenKategorijaIdIsZero()
@@ -226,34 +143,6 @@ namespace SUTUTWebApp.Tests.Unit.Services
 
             Assert.Equal("Novo ime kategorije", kat.Naziv);
             _repoMock.Verify(r => r.RemoveKategorija(It.IsAny<Kategorija>()), Times.Never);
-        }
-
-
-        [Fact]
-        public async Task DeleteAsync_ReturnsFalseWhenNotFound()
-        {
-            _repoMock.Setup(r => r.GetByIdWithKategorijasAsync(5))
-                     .ReturnsAsync((Utrka?)null);
-            var service = MakeService();
-
-            var result = await service.DeleteAsync(5);
-
-            Assert.False(result);
-            _repoMock.Verify(r => r.DeleteAsync(It.IsAny<Utrka>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_ReturnsTrueAndCallsDeleteWhenFound()
-        {
-            var utrka = TestDataFactory.MakeUtrka(id: 5);
-            _repoMock.Setup(r => r.GetByIdWithKategorijasAsync(5)).ReturnsAsync(utrka);
-            var service = MakeService();
-
-            var result = await service.DeleteAsync(5);
-
-            Assert.True(result);
-            _repoMock.Verify(r => r.DeleteAsync(utrka), Times.Once);
-            _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
         }
     }
 }

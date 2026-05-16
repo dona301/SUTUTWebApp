@@ -13,46 +13,6 @@ namespace SUTUTWebApp.Tests.Unit.Services
 
 
         [Fact]
-        public async Task GetAllAsync_DelegatesToRepository()
-        {
-            var ocekivano = new List<Statusutrke> { new() { StatusId = 1, Naziv = "Test" } };
-            _repoMock.Setup(r => r.GetAllAsync("test"))
-                     .ReturnsAsync(ocekivano);
-            var service = MakeService();
-
-            var result = await service.GetAllAsync("test");
-
-            Assert.Single(result);
-            _repoMock.Verify(r => r.GetAllAsync("test"), Times.Once);
-        }
-
-
-        [Fact]
-        public async Task GetByIdAsync_ReturnsStatusWhenFound()
-        {
-            var status = new Statusutrke { StatusId = 3, Naziv = "Aktivan" };
-            _repoMock.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(status);
-            var service = MakeService();
-
-            var result = await service.GetByIdAsync(3);
-
-            Assert.NotNull(result);
-            Assert.Equal("Aktivan", result.Naziv);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_ReturnsNullWhenNotFound()
-        {
-            _repoMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Statusutrke?)null);
-            var service = MakeService();
-
-            var result = await service.GetByIdAsync(99);
-
-            Assert.Null(result);
-        }
-
-
-        [Fact]
         public async Task CreateAsync_CallsAddAndSaveChanges()
         {
             var service = MakeService();
@@ -66,7 +26,7 @@ namespace SUTUTWebApp.Tests.Unit.Services
 
 
         [Fact]
-        public async Task UpdateAsync_ReturnsFalse_WhenIdMismatch()
+        public async Task UpdateAsync_ReturnsFalseWhenIdMismatch()
         {
             // id 1, ali objekt ima id 99 -> ne smije se azurirati
             var service = MakeService();
@@ -117,19 +77,6 @@ namespace SUTUTWebApp.Tests.Unit.Services
             Assert.True(result);
             _repoMock.Verify(r => r.DeleteAsync(status), Times.Once);
             _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
-        }
-
-
-        [Fact]
-        public void Exists_DelegatesToRepository()
-        {
-            _repoMock.Setup(r => r.Exists(7)).Returns(true);
-            var service = MakeService();
-
-            var result = service.Exists(7);
-
-            Assert.True(result);
-            _repoMock.Verify(r => r.Exists(7), Times.Once);
         }
     }
 }

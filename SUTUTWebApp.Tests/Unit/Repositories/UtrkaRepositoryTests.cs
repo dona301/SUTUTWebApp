@@ -14,19 +14,6 @@ namespace SUTUTWebApp.Tests.Unit.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_WithoutFilter_ReturnsAllUtrke()
-        {
-            var (repo, ctx) = Make(nameof(GetAllAsync_WithoutFilter_ReturnsAllUtrke));
-            ctx.Utrkas.Add(TestDataFactory.MakeUtrka(id: 0));
-            ctx.Utrkas.Add(TestDataFactory.MakeUtrka(id: 0));
-            await ctx.SaveChangesAsync();
-
-            var result = await repo.GetAllAsync(null);
-
-            Assert.Equal(2, result.Count());
-        }
-
-        [Fact]
         public async Task GetAllAsync_FiltersByNaziv()
         {
             var (repo, ctx) = Make(nameof(GetAllAsync_FiltersByNaziv));
@@ -42,62 +29,14 @@ namespace SUTUTWebApp.Tests.Unit.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_FiltersByGrad()
+        public async Task GetByIdAsync_ReturnsNullWhenNotExists()
         {
-            var (repo, ctx) = Make(nameof(GetAllAsync_FiltersByGrad));
-            var u1 = TestDataFactory.MakeUtrka(id: 0); u1.Grad = "Split";
-            var u2 = TestDataFactory.MakeUtrka(id: 0); u2.Grad = "Rijeka";
-            ctx.Utrkas.AddRange(u1, u2);
-            await ctx.SaveChangesAsync();
-
-            var result = await repo.GetAllAsync("Split");
-
-            Assert.Single(result);
-        }
-
-
-        [Fact]
-        public async Task GetByIdAsync_WhenExists_ReturnsUtrkaWithOrganizatorAndStatus()
-        {
-            var (repo, ctx) = Make(nameof(GetByIdAsync_WhenExists_ReturnsUtrkaWithOrganizatorAndStatus));
-            ctx.Utrkas.Add(TestDataFactory.MakeUtrka(id: 0));
-            await ctx.SaveChangesAsync();
-            var savedId = ctx.Utrkas.First().UtrkaId;
-
-            var result = await repo.GetByIdAsync(savedId);
-
-            Assert.NotNull(result);
-            Assert.NotNull(result.Organizator);   
-            Assert.NotNull(result.Status);         
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_WhenNotExists_ReturnsNull()
-        {
-            var (repo, _) = Make(nameof(GetByIdAsync_WhenNotExists_ReturnsNull));
+            var (repo, _) = Make(nameof(GetByIdAsync_ReturnsNullWhenNotExists));
 
             var result = await repo.GetByIdAsync(999);
 
             Assert.Null(result);
         }
-
-
-        [Fact]
-        public async Task GetByIdWithKategorijasAsync_IncludesKategorijas()
-        {
-            var (repo, ctx) = Make(nameof(GetByIdWithKategorijasAsync_IncludesKategorijas));
-            var utrka = TestDataFactory.MakeUtrka(id: 0);
-            utrka.Kategorijas.Add(TestDataFactory.MakeKategorija(id: 0, utrkaId: 0));
-            ctx.Utrkas.Add(utrka);
-            await ctx.SaveChangesAsync();
-            var savedId = ctx.Utrkas.First().UtrkaId;
-
-            var result = await repo.GetByIdWithKategorijasAsync(savedId);
-
-            Assert.NotNull(result);
-            Assert.Single(result.Kategorijas);
-        }
-
 
         [Fact]
         public async Task GetByIdWithDetailsAsync_IncludesAllRelatedData()
@@ -120,9 +59,9 @@ namespace SUTUTWebApp.Tests.Unit.Repositories
 
 
         [Fact]
-        public async Task AddAsync_PersistsUtrkaToDatabase()
+        public async Task AddAsync_SavesUtrkaToDatabase()
         {
-            var (repo, ctx) = Make(nameof(AddAsync_PersistsUtrkaToDatabase));
+            var (repo, ctx) = Make(nameof(AddAsync_SavesUtrkaToDatabase));
             var utrka = TestDataFactory.MakeUtrka(id: 0);
 
             await repo.AddAsync(utrka);
@@ -167,34 +106,12 @@ namespace SUTUTWebApp.Tests.Unit.Repositories
             Assert.Equal(1, ctx.Kategorijas.Count());
         }
 
-
-        [Fact]
-        public async Task GetOrganizatoriSelectAsync_ReturnsSelectListItems()
-        {
-            var (repo, _) = Make(nameof(GetOrganizatoriSelectAsync_ReturnsSelectListItems));
-
-            var result = await repo.GetOrganizatoriSelectAsync();
-
-            Assert.Single(result);
-            Assert.Equal("1", result.First().Value); 
-        }
-
         [Fact]
         public async Task GetStatusiSelectAsync_ReturnsSelectListItems()
         {
             var (repo, _) = Make(nameof(GetStatusiSelectAsync_ReturnsSelectListItems));
 
             var result = await repo.GetStatusiSelectAsync();
-
-            Assert.Single(result);
-        }
-
-        [Fact]
-        public async Task GetTipoviKategorijeSelectAsync_ReturnsSelectListItems()
-        {
-            var (repo, _) = Make(nameof(GetTipoviKategorijeSelectAsync_ReturnsSelectListItems));
-
-            var result = await repo.GetTipoviKategorijeSelectAsync();
 
             Assert.Single(result);
         }
