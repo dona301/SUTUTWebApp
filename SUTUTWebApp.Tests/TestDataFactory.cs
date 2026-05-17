@@ -49,31 +49,35 @@ public static class TestDataFactory
             TipId = tipId
         };
 
-    public static UtrkaFormVM MakeUtrkaFormVM(int utrkaId = 0) =>
-        new()
+    public static UtrkaFormVM MakeUtrkaFormVM(int utrkaId = 0)
+    {
+        var futureDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30));
+
+        return new UtrkaFormVM
         {
             UtrkaId = utrkaId,
             Naziv = "Nova Utrka",
-            Datum = new DateOnly(2025, 9, 1),
-            Grad = "Split",
+            Datum = futureDate,
+            Grad = "Zagreb",
             Drzava = "Hrvatska",
             OrganizatorId = 1,
             StatusId = 1,
             Kategorije = new List<KategorijaRowVM>
+        {
+            new KategorijaRowVM
             {
-                new()
-                {
-                    KategorijaId = 0,
-                    Naziv = "10km",
-                    Duljina = 10.0,
-                    MaxBrojTrkaca = 50,
-                    Startnina = 30.00m,
-                    Pocetak = new DateOnly(2025, 9, 1),
-                    TipId = 1,
-                    IsDeleted = false
-                }
+                KategorijaId = 0,
+                Naziv = "5km",
+                Duljina = 5.0,
+                MaxBrojTrkaca = 100,
+                Startnina = 25m,
+                Pocetak = futureDate,
+                TipId = 1,
+                IsDeleted = false
             }
+        }
         };
+    }
 
     public static MasterContext MakeInMemoryContext(string dbName)
     {

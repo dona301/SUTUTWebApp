@@ -18,10 +18,16 @@
             <label asp-for="Naziv" class="form-label"></label>
             <input asp-for="Naziv" class="form-control" />
         </div>
-        <div class="col-md-2">
-            <label asp-for="Datum" class="form-label"></label>
-            <input asp-for="Datum" type="date" class="form-control" />
-        </div>
+        @if (isEdit && Model.Datum < DateOnly.FromDateTime(DateTime.Today))
+        {
+            <input asp-for="Datum" type="date" class="form-control" readonly />
+            <small class="text-muted">Datum prošle utrke ne može se mijenjati.</small>
+        }
+        else
+        {
+            <input asp-for="Datum" type="date" class="form-control"
+                   value="@(Model.UtrkaId == 0 ? DateTime.Today.ToString("yyyy-MM-dd") : Model.Datum.ToString("yyyy-MM-dd"))" />
+        }
         <div class="col-md-3">
             <label asp-for="Grad" class="form-label"></label>
             <input asp-for="Grad" class="form-control" />

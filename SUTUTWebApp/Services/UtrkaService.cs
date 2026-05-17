@@ -175,6 +175,12 @@ public class UtrkaService : IUtrkaService
         if (!activeRows.Any())
             throw new BusinessValidationException("Utrka mora imati najmanje jednu kategoriju.");
 
+        if (vm.UtrkaId == 0 && vm.Datum < DateOnly.FromDateTime(DateTime.Today))
+            throw new BusinessValidationException("Datum utrke ne može biti u prošlosti.");
+
+        if (vm.UtrkaId != 0 && vm.Datum < DateOnly.FromDateTime(DateTime.Today))
+            throw new BusinessValidationException("Datum buduće utrke ne može se postaviti u prošlost.");
+
         foreach (var k in activeRows)
         {
             if (k.Pocetak < vm.Datum)
