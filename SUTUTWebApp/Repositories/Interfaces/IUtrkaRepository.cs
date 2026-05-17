@@ -17,6 +17,8 @@ public interface IUtrkaRepository
     Task DeleteAsync(Utrka utrka);
     Task SaveChangesAsync();
     void RemoveKategorija(Kategorija kategorija);
+    Task<bool> HasRezultatiAsync(int utrkaId);
+    Task<bool> HasRezultatiForKategorijaAsync(int kategorijaId);
 
     // Dropdown
     Task<List<SelectListItem>> GetOrganizatoriSelectAsync();

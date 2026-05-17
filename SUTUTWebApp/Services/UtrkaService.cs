@@ -98,6 +98,14 @@ public class UtrkaService : IUtrkaService
         var utrka = await _utrkaRepository.GetByIdWithKategorijasAsync(vm.UtrkaId);
         if (utrka == null) return false;
 
+        foreach (var row in vm.Kategorije.Where(r => r.IsDeleted && r.KategorijaId != 0))
+        {
+            var hasResults = await _utrkaRepository.HasRezultatiForKategorijaAsync(row.KategorijaId);
+            if (hasResults)
+                throw new BusinessValidationException(
+                    $"Nije moguće obrisati kategoriju '{row.Naziv}' jer postoje rezultati vezani uz nju.");
+        }
+
         utrka.Naziv = vm.Naziv;
         utrka.Datum = vm.Datum;
         utrka.Grad = vm.Grad;
@@ -150,6 +158,11 @@ public class UtrkaService : IUtrkaService
     {
         var utrka = await _utrkaRepository.GetByIdWithKategorijasAsync(id);
         if (utrka == null) return false;
+
+        var hasRezultati = await _utrkaRepository.HasRezultatiAsync(id);
+        if (hasRezultati)
+            throw new BusinessValidationException(
+                "Nije moguće obrisati utrku jer postoje rezultati vezani uz njene kategorije.");
 
         await _utrkaRepository.DeleteAsync(utrka);
         await _utrkaRepository.SaveChangesAsync();

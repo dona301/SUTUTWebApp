@@ -117,4 +117,16 @@ public class UtrkaRepository : IUtrkaRepository
     {
         _context.Kategorijas.Remove(kategorija);
     }
+
+    public async Task<bool> HasRezultatiAsync(int utrkaId)
+    {
+        return await _context.Rezultats
+            .AnyAsync(r => r.Kategorija.UtrkaId == utrkaId);
+    }
+
+    public async Task<bool> HasRezultatiForKategorijaAsync(int kategorijaId)
+    {
+        return await _context.Rezultats
+            .AnyAsync(r => r.KategorijaId == kategorijaId);
+    }
 }

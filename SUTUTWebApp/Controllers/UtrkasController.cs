@@ -82,10 +82,18 @@ public class UtrkasController : Controller
             return View("Form", vm);
         }
 
-        var found = await _utrkaService.UpdateAsync(vm);
-        if (!found) return NotFound();
-
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            var found = await _utrkaService.UpdateAsync(vm);
+            if (!found) return NotFound();
+            return RedirectToAction(nameof(Index));
+        }
+        catch (BusinessValidationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            await _utrkaService.PopulateDropdownsAsync(vm);
+            return View("Form", vm);
+        }
     }
 
     public async Task<IActionResult> Delete(int id)
@@ -98,7 +106,16 @@ public class UtrkasController : Controller
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        await _utrkaService.DeleteAsync(id);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _utrkaService.DeleteAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (BusinessValidationException ex)
+        {
+            var utrka = await _utrkaService.GetByIdAsync(id);
+            ModelState.AddModelError("", ex.Message);
+            return View(utrka);
+        }
     }
 }
