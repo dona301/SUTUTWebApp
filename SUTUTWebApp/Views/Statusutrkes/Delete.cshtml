@@ -7,8 +7,27 @@
 <h1>Izbriši status</h1>
 
 <h3>Jeste li sigurni da želite obrisati stavku?</h3>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="text-danger mb-3">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
 <div>
     <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.StatusId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.StatusId)
+        </dd>
+    </dl>
     <dl class="row">
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Naziv)

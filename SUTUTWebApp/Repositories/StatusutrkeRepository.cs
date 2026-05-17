@@ -63,4 +63,8 @@ public class StatusutrkeRepository : IStatusutrkeRepository
         return await _context.Statusutrkes
             .AnyAsync(s => s.Naziv == naziv && s.StatusId != excludeId);
     }
+    public async Task<bool> HasUtrkeAsync(int statusId)
+    {
+        return await _context.Utrkas.AnyAsync(u => u.StatusId == statusId);
+    }
 }

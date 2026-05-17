@@ -54,6 +54,11 @@ public class StatusutrkeService : IStatusutrkeService
         var statusutrke = await _statusutrkeRepository.GetByIdAsync(id);
         if (statusutrke == null) return false;
 
+        var hasUtrke = await _statusutrkeRepository.HasUtrkeAsync(id);
+        if (hasUtrke)
+            throw new BusinessValidationException(
+                "Nije moguće obrisati status jer postoje utrke koje ga koriste.");
+
         await _statusutrkeRepository.DeleteAsync(statusutrke);
         await _statusutrkeRepository.SaveChangesAsync();
         return true;

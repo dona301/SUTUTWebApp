@@ -87,7 +87,16 @@ public class StatusutrkesController : Controller
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        await _statusutrkeService.DeleteAsync(id);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _statusutrkeService.DeleteAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (BusinessValidationException ex)
+        {
+            var status = await _statusutrkeService.GetByIdAsync(id);
+            ModelState.AddModelError("", ex.Message);
+            return View("Delete", status);
+        }
     }
 }
