@@ -4,11 +4,10 @@
     ViewData["Title"] = "Delete";
 }
 
-<h1>Delete</h1>
+<h1>Izbriši status</h1>
 
 <h3>Jeste li sigurni da želite obrisati stavku?</h3>
 <div>
-    <h4>Statusutrke</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -21,7 +20,7 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="StatusId" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <input type="submit" value="Izbriši" class="btn btn-danger" /> |
         <a asp-action="Index">Natrag na popis</a>
     </form>
 </div>
