@@ -24,7 +24,7 @@ Otvoriti projekt u Visual Studiju odabirom datoteke `SUTUTWebApp.sln`.
 
 ### 2. Kreiranje baze podataka
 
-U SSMS-u se spojiti na lokalnu instancu SQL Servera te kreirati novu praznu bazu podataka:
+U SSMS-u se spojiti na lokalnu instancu SQL Servera te kreirati novu praznu bazu podataka.
 
 ---
 
