@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SUTUTWebApp.Controllers;
+using SUTUTWebApp.Exceptions;
 using SUTUTWebApp.Models.Entities;
 using SUTUTWebApp.Models.ViewModels;
 using SUTUTWebApp.Services.Interfaces;
@@ -17,18 +18,17 @@ namespace SUTUTWebApp.Tests.Unit.Controllers
         {
             _serviceMock.Setup(s => s.PopulateDropdownsAsync(It.IsAny<UtrkaFormVM>()))
                         .Returns(Task.CompletedTask);
-            var controller = MakeController();
+            _serviceMock.Setup(s => s.ValidateBusiness(It.IsAny<UtrkaFormVM>()))
+                        .Throws(new BusinessValidationException("Datum kategorije ne može biti prije datuma utrke."));
 
+            var controller = MakeController();
             var vm = TestDataFactory.MakeUtrkaFormVM();
-            vm.Datum = new DateOnly(2025, 9, 1);
-            vm.Kategorije[0].Pocetak = new DateOnly(2025, 8, 1); // prije datuma utrke
 
             var result = await controller.Create(vm);
 
             var view = Assert.IsType<ViewResult>(result);
             Assert.Equal("Form", view.ViewName);
             Assert.False(controller.ModelState.IsValid);
-            // ne smije kreirati utrku
             _serviceMock.Verify(s => s.CreateAsync(It.IsAny<UtrkaFormVM>()), Times.Never);
         }
 
@@ -37,18 +37,20 @@ namespace SUTUTWebApp.Tests.Unit.Controllers
         {
             _serviceMock.Setup(s => s.PopulateDropdownsAsync(It.IsAny<UtrkaFormVM>()))
                         .Returns(Task.CompletedTask);
-            var controller = MakeController();
+            _serviceMock.Setup(s => s.ValidateBusiness(It.IsAny<UtrkaFormVM>()))
+                        .Throws(new BusinessValidationException("Postoje dvije kategorije iste duljine i istog tipa."));
 
+            var controller = MakeController();
             var vm = TestDataFactory.MakeUtrkaFormVM();
-            vm.Datum = new DateOnly(2025, 9, 1);
 
             // druga kategorija s istom duljinom i tipom kao prva
+            vm.Datum = new DateOnly(2025, 9, 1);
             vm.Kategorije.Add(new KategorijaRowVM
             {
                 KategorijaId = 0,
                 Naziv = "Duplikat",
-                Duljina = vm.Kategorije[0].Duljina,  
-                TipId = vm.Kategorije[0].TipId,       
+                Duljina = vm.Kategorije[0].Duljina,
+                TipId = vm.Kategorije[0].TipId,
                 MaxBrojTrkaca = 50,
                 Startnina = 20m,
                 Pocetak = vm.Datum,
@@ -92,6 +94,10 @@ namespace SUTUTWebApp.Tests.Unit.Controllers
         [Fact]
         public async Task Create_Post_RedirectsToIndexWhenValid()
         {
+            _serviceMock.Setup(s => s.ValidateBusiness(It.IsAny<UtrkaFormVM>()))
+                        // no .Throws() = passes silently
+                        .Verifiable();
+
             var controller = MakeController();
             var vm = TestDataFactory.MakeUtrkaFormVM();
             vm.Datum = new DateOnly(2025, 9, 1);
@@ -120,11 +126,11 @@ namespace SUTUTWebApp.Tests.Unit.Controllers
         {
             _serviceMock.Setup(s => s.PopulateDropdownsAsync(It.IsAny<UtrkaFormVM>()))
                         .Returns(Task.CompletedTask);
-            var controller = MakeController();
+            _serviceMock.Setup(s => s.ValidateBusiness(It.IsAny<UtrkaFormVM>()))
+                        .Throws(new BusinessValidationException("Nevažeći datum."));
 
+            var controller = MakeController();
             var vm = TestDataFactory.MakeUtrkaFormVM(utrkaId: 1);
-            vm.Datum = new DateOnly(2025, 9, 1);
-            vm.Kategorije[0].Pocetak = new DateOnly(2025, 7, 1); // nevazeci datum
 
             var result = await controller.Edit(vm);
 

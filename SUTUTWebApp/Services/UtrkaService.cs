@@ -1,4 +1,5 @@
-﻿using SUTUTWebApp.Models.Entities;
+﻿using SUTUTWebApp.Exceptions;
+using SUTUTWebApp.Models.Entities;
 using SUTUTWebApp.Models.ViewModels;
 using SUTUTWebApp.Repositories;
 using SUTUTWebApp.Repositories.Interfaces;
@@ -153,5 +154,24 @@ public class UtrkaService : IUtrkaService
         await _utrkaRepository.DeleteAsync(utrka);
         await _utrkaRepository.SaveChangesAsync();
         return true;
+    }
+    public void ValidateBusiness(UtrkaFormVM vm)
+    {
+        var activeRows = vm.Kategorije.Where(k => !k.IsDeleted).ToList();
+
+        foreach (var k in activeRows)
+        {
+            if (k.Pocetak < vm.Datum)
+                throw new BusinessValidationException(
+                    $"Kategorija '{k.Naziv}': datum početka ({k.Pocetak}) ne može biti prije datuma utrke ({vm.Datum}).");
+        }
+
+        var dupes = activeRows
+            .GroupBy(k => new { k.Duljina, k.TipId })
+            .Where(g => g.Count() > 1);
+
+        foreach (var d in dupes)
+            throw new BusinessValidationException(
+                $"Postoje dvije kategorije iste duljine ({d.Key.Duljina} km) i istog tipa.");
     }
 }

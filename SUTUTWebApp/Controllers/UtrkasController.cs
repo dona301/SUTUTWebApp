@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SUTUTWebApp.Exceptions;
 using SUTUTWebApp.Models.ViewModels;
 using SUTUTWebApp.Services.Interfaces;
 
@@ -37,7 +38,14 @@ public class UtrkasController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(UtrkaFormVM vm)
     {
-        ValidateBusiness(vm);
+        try
+        {
+            _utrkaService.ValidateBusiness(vm);
+        }
+        catch (BusinessValidationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+        }
 
         if (!ModelState.IsValid)
         {
@@ -59,7 +67,14 @@ public class UtrkasController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(UtrkaFormVM vm)
     {
-        ValidateBusiness(vm);
+        try
+        {
+            _utrkaService.ValidateBusiness(vm);
+        }
+        catch (BusinessValidationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+        }
 
         if (!ModelState.IsValid)
         {
@@ -85,26 +100,5 @@ public class UtrkasController : Controller
     {
         await _utrkaService.DeleteAsync(id);
         return RedirectToAction(nameof(Index));
-    }
-
-    // Business validation stays in the controller — it works with ModelState
-    private void ValidateBusiness(UtrkaFormVM vm)
-    {
-        var activeRows = vm.Kategorije.Where(k => !k.IsDeleted).ToList();
-
-        foreach (var k in activeRows)
-        {
-            if (k.Pocetak < vm.Datum)
-                ModelState.AddModelError("",
-                    $"Kategorija '{k.Naziv}': datum početka ({k.Pocetak}) ne može biti prije datuma utrke ({vm.Datum}).");
-        }
-
-        var dupes = activeRows
-            .GroupBy(k => new { k.Duljina, k.TipId })
-            .Where(g => g.Count() > 1);
-
-        foreach (var d in dupes)
-            ModelState.AddModelError("",
-                $"Postoje dvije kategorije iste duljine ({d.Key.Duljina} km) i istog tipa.");
     }
 }

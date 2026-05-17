@@ -14,4 +14,5 @@ public interface IUtrkaService
     Task CreateAsync(UtrkaFormVM vm);
     Task<bool> UpdateAsync(UtrkaFormVM vm);
     Task<bool> DeleteAsync(int id);
+    void ValidateBusiness(UtrkaFormVM vm);
 }

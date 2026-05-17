@@ -57,4 +57,10 @@ public class StatusutrkeRepository : IStatusutrkeRepository
     {
         return _context.Statusutrkes.Any(s => s.StatusId == id);
     }
+
+    public async Task<bool> NazivExistsAsync(string naziv, int? excludeId = null)
+    {
+        return await _context.Statusutrkes
+            .AnyAsync(s => s.Naziv == naziv && s.StatusId != excludeId);
+    }
 }

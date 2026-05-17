@@ -10,4 +10,5 @@ public interface IStatusutrkeService
     Task<bool> UpdateAsync(int id, Statusutrke statusutrke);
     Task<bool> DeleteAsync(int id);
     bool Exists(int id);
+    Task<bool> NazivExistsAsync(string naziv);
 }

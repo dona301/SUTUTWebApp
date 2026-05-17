@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SUTUTWebApp.Exceptions;
 using SUTUTWebApp.Models.Entities;
+using SUTUTWebApp.Models.ViewModels;
 using SUTUTWebApp.Services.Interfaces;
 
 namespace SUTUTWebApp.Controllers;
@@ -37,9 +39,16 @@ public class StatusutrkesController : Controller
     public async Task<IActionResult> Create([Bind("StatusId,Naziv")] Statusutrke statusutrke)
     {
         if (!ModelState.IsValid) return View(statusutrke);
-
-        await _statusutrkeService.CreateAsync(statusutrke);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _statusutrkeService.CreateAsync(statusutrke);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (BusinessValidationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View(statusutrke);
+        }
     }
 
     public async Task<IActionResult> Edit(int? id)
@@ -54,11 +63,17 @@ public class StatusutrkesController : Controller
     public async Task<IActionResult> Edit(int id, [Bind("StatusId,Naziv")] Statusutrke statusutrke)
     {
         if (!ModelState.IsValid) return View(statusutrke);
-
-        var found = await _statusutrkeService.UpdateAsync(id, statusutrke);
-        if (!found) return NotFound();
-
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            var found = await _statusutrkeService.UpdateAsync(id, statusutrke);
+            if (!found) return NotFound();
+            return RedirectToAction(nameof(Index));
+        }
+        catch (BusinessValidationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View(statusutrke);
+        }
     }
 
     public async Task<IActionResult> Delete(int? id)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SUTUTWebApp.Controllers;
+using SUTUTWebApp.Exceptions;
 using SUTUTWebApp.Models.Entities;
 using SUTUTWebApp.Services.Interfaces;
 
@@ -93,6 +94,36 @@ namespace SUTUTWebApp.Tests.Unit.Controllers
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Index", redirect.ActionName);
             _serviceMock.Verify(s => s.DeleteAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task Create_Post_ReturnsViewWhenNazivAlreadyExists()
+        {
+            _serviceMock.Setup(s => s.CreateAsync(It.IsAny<Statusutrke>()))
+                        .ThrowsAsync(new BusinessValidationException("Status s tim nazivom već postoji."));
+            var controller = MakeController();
+            var status = new Statusutrke { Naziv = "Postojeci" };
+
+            var result = await controller.Create(status);
+
+            var view = Assert.IsType<ViewResult>(result);
+            Assert.False(controller.ModelState.IsValid);
+            _serviceMock.Verify(s => s.CreateAsync(It.IsAny<Statusutrke>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Edit_Post_ReturnsViewWhenNazivAlreadyExists()
+        {
+            _serviceMock.Setup(s => s.UpdateAsync(1, It.IsAny<Statusutrke>()))
+                        .ThrowsAsync(new BusinessValidationException("Status s tim nazivom već postoji."));
+            var controller = MakeController();
+            var status = new Statusutrke { StatusId = 1, Naziv = "Postojeci" };
+
+            var result = await controller.Edit(1, status);
+
+            var view = Assert.IsType<ViewResult>(result);
+            Assert.False(controller.ModelState.IsValid);
+            _serviceMock.Verify(s => s.UpdateAsync(1, It.IsAny<Statusutrke>()), Times.Once);
         }
     }
 }

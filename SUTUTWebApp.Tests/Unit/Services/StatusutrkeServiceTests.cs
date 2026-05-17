@@ -1,4 +1,5 @@
 ﻿using Moq;
+using SUTUTWebApp.Exceptions;
 using SUTUTWebApp.Models.Entities;
 using SUTUTWebApp.Repositories.Interfaces;
 using SUTUTWebApp.Services;
@@ -77,6 +78,44 @@ namespace SUTUTWebApp.Tests.Unit.Services
             Assert.True(result);
             _repoMock.Verify(r => r.DeleteAsync(status), Times.Once);
             _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ThrowsWhenNazivAlreadyExists()
+        {
+            _repoMock.Setup(r => r.NazivExistsAsync("Postojeci", null))
+                     .ReturnsAsync(true);
+            var service = MakeService();
+            var status = new Statusutrke { Naziv = "Postojeci" };
+
+            await Assert.ThrowsAsync<BusinessValidationException>(() => service.CreateAsync(status));
+            _repoMock.Verify(r => r.AddAsync(It.IsAny<Statusutrke>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ThrowsWhenNazivAlreadyExistsOnOtherRecord()
+        {
+            _repoMock.Setup(r => r.NazivExistsAsync("Postojeci", 1))
+                     .ReturnsAsync(true);
+            var service = MakeService();
+            var status = new Statusutrke { StatusId = 1, Naziv = "Postojeci" };
+
+            await Assert.ThrowsAsync<BusinessValidationException>(() => service.UpdateAsync(1, status));
+            _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Statusutrke>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_DoesNotThrowWhenNazivBelongsToSameRecord()
+        {
+            _repoMock.Setup(r => r.NazivExistsAsync("Isti naziv", 1))
+                     .ReturnsAsync(false);
+            var service = MakeService();
+            var status = new Statusutrke { StatusId = 1, Naziv = "Isti naziv" };
+
+            var result = await service.UpdateAsync(1, status);
+
+            Assert.True(result);
+            _repoMock.Verify(r => r.UpdateAsync(status), Times.Once);
         }
     }
 }

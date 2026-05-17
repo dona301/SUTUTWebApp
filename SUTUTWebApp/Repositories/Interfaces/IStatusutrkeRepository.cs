@@ -11,4 +11,6 @@ public interface IStatusutrkeRepository
     Task DeleteAsync(Statusutrke statusutrke);
     Task SaveChangesAsync();
     bool Exists(int id);
+    Task<bool> NazivExistsAsync(string naziv, int? excludeId = null);
+
 }

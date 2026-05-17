@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SUTUTWebApp.Exceptions;
 using SUTUTWebApp.Models.Entities;
 using SUTUTWebApp.Repositories.Interfaces;
 using SUTUTWebApp.Services.Interfaces;
@@ -22,13 +23,18 @@ public class StatusutrkeService : IStatusutrkeService
 
     public async Task CreateAsync(Statusutrke statusutrke)
     {
+        var exists = await _statusutrkeRepository.NazivExistsAsync(statusutrke.Naziv);
+        if (exists)
+            throw new BusinessValidationException("Status s tim nazivom već postoji.");
         await _statusutrkeRepository.AddAsync(statusutrke);
         await _statusutrkeRepository.SaveChangesAsync();
     }
     public async Task<bool> UpdateAsync(int id, Statusutrke statusutrke)
     {
         if (id != statusutrke.StatusId) return false;
-
+        var exists = await _statusutrkeRepository.NazivExistsAsync(statusutrke.Naziv, excludeId: id);
+        if (exists)
+            throw new BusinessValidationException("Status s tim nazivom već postoji.");
         try
         {
             await _statusutrkeRepository.UpdateAsync(statusutrke);
@@ -55,4 +61,6 @@ public class StatusutrkeService : IStatusutrkeService
 
     public bool Exists(int id)
         => _statusutrkeRepository.Exists(id);
+    public async Task<bool> NazivExistsAsync(string naziv)
+        => await _statusutrkeRepository.NazivExistsAsync(naziv);
 }
