@@ -159,6 +159,9 @@ public class UtrkaService : IUtrkaService
     {
         var activeRows = vm.Kategorije.Where(k => !k.IsDeleted).ToList();
 
+        if (!activeRows.Any())
+            throw new BusinessValidationException("Utrka mora imati najmanje jednu kategoriju.");
+
         foreach (var k in activeRows)
         {
             if (k.Pocetak < vm.Datum)
